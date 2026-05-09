@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LuxeCart Hub - Amazon Affiliate Deals</title>
+  <meta name="description" content="Trending fashion deals with Amazon affiliate offers. Add items to cart (local) and open affiliate links." />
+  <meta name="keywords" content="amazon fashion deals, affiliate marketing, trendy outfits" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="LuxeCart Hub" />
+  <meta property="og:description" content="Fashion deals and trending outfits with Amazon affiliate offers." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1529139578434-53c49e7628eb?w=1200" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="LuxeCart Hub" />
+  <meta property="twitter:description" content="Fashion deals and trending outfits with Amazon affiliate offers." />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* Lightweight additions for affiliate + cart UI (keep your style.css as the base) */
+    .app-surface{padding-top:88px;}
+
+    .topbar{
+      position:fixed;top:0;left:0;right:0;z-index:2000;
+      background:rgba(10,10,10,0.92);backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(212,175,55,0.25);
+    }
+    .topbar-inner{
+      max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;
+      padding:14px 18px;gap:14px;
+    }
+    .brand{display:flex;align-items:center;gap:12px;}
+    .brand .logo{
+      font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;
+      background:linear-gradient(135deg,var(--gold),var(--white));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+
+    .search-actions{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end;}
+
+    .search-wrap{display:flex;align-items:center;gap:10px;width:min(520px,100%);}
+    .search-bar{
+      flex:1;display:flex;align-items:center;gap:10px;
+      background:rgba(17,17,17,0.9);
+      border:1px solid rgba(212,175,55,0.35);
+      border-radius:999px;
+      padding:10px 16px;
+      transition:all .2s ease;
+    }
+    .search-bar:focus-within{border-color:rgba(212,175,55,0.85);box-shadow:0 0 0 4px rgba(212,175,55,0.12);}
+    .search-bar input{
+      width:100%;background:transparent;border:none;outline:none;color:var(--white);
+      font-size:0.95rem;
+    }
+    .search-bar input::placeholder{color:var(--gray-light)}
+
+    .chip{
+      background:rgba(212,175,55,0.10);
+      border:1px solid rgba(212,175,55,0.35);
+      color:var(--gold);
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:700;
+      display:flex;align-items:center;gap:10px;
+    }
+    .icon-btn{
+      width:46px;height:46px;border-radius:50%;
+      background:rgba(17,17,17,0.9);
+      border:1px solid rgba(212,175,55,0.35);
+      color:var(--white);
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;position:relative;
+      transition:transform .15s ease;
+    }
+    .icon-btn:hover{transform:translateY(-2px)}
+    .cart-badge{
+      position:absolute;top:-6px;right:-6px;
+      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      color:#000;font-weight:900;
+      border-radius:999px;padding:4px 8px;font-size:0.78rem;
+      border:1px solid rgba(0,0,0,0.25);
+    }
+
+    .hero2{
+      min-height:52vh;
+      background:linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)),
+        url('https://images.unsplash.com/photo-1529139578434-53c49e7628eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+      background-size:cover;background-position:center;
+      display:flex;align-items:center;justify-content:center;text-align:center;
+      padding:42px 18px;
+    }
+    .hero2 h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,5vw,4.2rem);color:var(--white);}
+    .hero2 p{max-width:820px;opacity:.92;margin-top:12px;font-size:1.1rem;}
+
+    .controls{
+      max-width:1400px;margin:0 auto;padding:22px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    }
+    .settings-card{
+      max-width:1400px;margin:0 auto 18px auto;
+      background:rgba(17,17,17,0.9);
+      border:1px solid rgba(212,175,55,0.25);
+      border-radius:18px;
+      padding:18px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .settings-card h2{
+      margin:0;font-family:'Playfair Display',serif;font-size:1.3rem;
+    }
+    .settings-card p{
+      margin:0;opacity:.86;max-width:740px;
+    }
+    .select{
+      background:rgba(17,17,17,0.9);
+      border:1px solid rgba(212,175,55,0.35);
+      color:var(--white);
+      padding:12px 14px;border-radius:14px;
+      outline:none;
+    }
+
+    /* Product card tweaks */
+    .product-card .product-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;}
+
+    .buy-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      gap:10px;
+      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      color:#000;
+      padding:12px 18px;
+      border-radius:999px;
+      text-decoration:none;
+      font-weight:900;
+      transition:transform .15s ease, filter .15s ease;
+      border:none;
+      cursor:pointer;
+    }
+    .buy-btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+
+    .add-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      gap:10px;
+      background:transparent;
+      color:var(--gold);
+      padding:12px 16px;
+      border-radius:999px;
+      text-decoration:none;
+      font-weight:900;
+      transition:transform .15s ease, border-color .15s ease;
+      border:1px solid rgba(212,175,55,0.55);
+      cursor:pointer;
+    }
+    .add-btn:hover{transform:translateY(-2px);border-color:rgba(212,175,55,0.95)}
+
+    /* Cart drawer */
+    .drawer{
+      position:fixed;top:0;right:0;bottom:0;width:min(520px, 100%);
+      background:rgba(12,12,12,0.98);
+      border-left:1px solid rgba(212,175,55,0.25);
+      box-shadow:-20px 0 60px rgba(0,0,0,0.65);
+      z-index:3000;
+      transform:translateX(110%);
+      transition:transform .2s ease;
+      display:flex;flex-direction:column;
+    }
+    .drawer.open{transform:translateX(0)}
+    .drawer-header{
+      padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border-bottom:1px solid rgba(212,175,55,0.25);
+    }
+    .drawer-header h2{font-family:'Playfair Display',serif;margin:0;font-size:1.6rem}
+    .drawer-close{
+      background:transparent;border:1px solid rgba(212,175,55,0.55);
+      color:var(--gold);border-radius:12px;padding:10px 12px;font-weight:900;cursor:pointer;
+    }
+    .drawer-body{padding:16px;overflow:auto;flex:1;}
+    .cart-item{
+      display:flex;gap:12px;align-items:flex-start;
+      border:1px solid rgba(212,175,55,0.20);
+      border-radius:16px;padding:12px;margin-bottom:12px;
+      background:rgba(17,17,17,0.6);
+    }
+    .cart-thumb{
+      width:84px;height:84px;border-radius:14px;
+      background-size:cover;background-position:center;
+      border:1px solid rgba(212,175,55,0.18);
+      flex:0 0 auto;
+    }
+    .cart-meta{flex:1}
+    .cart-title{font-weight:900;margin:0 0 6px 0;line-height:1.25}
+    .cart-sub{opacity:.85;font-size:.92rem;margin:0 0 10px 0}
+    .qty-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .qty-btn{
+      width:38px;height:38px;border-radius:10px;
+      background:transparent;border:1px solid rgba(212,175,55,0.45);
+      color:var(--gold);font-weight:900;cursor:pointer;
+    }
+    .qty{min-width:40px;text-align:center;font-weight:900}
+
+    .drawer-footer{padding:16px;border-top:1px solid rgba(212,175,55,0.25)}
+    .total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .total-row strong{font-size:1.1rem}
+    .primary-wide{width:100%}
+
+    /* Responsive */
+    @media(max-width:820px){
+      .topbar-inner{flex-wrap:wrap}
+      .search-actions{justify-content:flex-start;width:100%}
+      .search-wrap{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo">LuxeCart Hub</div>
+      </div>
+
+      <div class="search-actions">
+        <div class="search-wrap">
+          <div class="search-bar" role="search">
+            <i class="fas fa-search" style="color: var(--gold);"></i>
+            <input id="searchInput" type="text" placeholder="Search products..." autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="icon-btn" id="openCartBtn" aria-label="Open cart" title="Cart">
+          <i class="fas fa-cart-shopping"></i>
+          <span class="cart-badge" id="cartCount">0</span>
+        </div>
+        <a href="admin.html" class="add-btn" title="Admin Dashboard">
+          <i class="fas fa-user-shield"></i> Admin
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <main class="app-surface">
+    <!-- Hero -->
+    <section class="hero2" id="home">
+      <div>
+        <h1>Luxury Finds, Amazon Affiliate Deals</h1>
+        <p>Add to cart (local) and open affiliate offers instantly. Your products come from <b>products.json</b>.</p>
+      </div>
+    </section>
+
+    <div class="settings-card">
+      <div>
+        <h2>Dashboard Settings</h2>
+        <p>Manage product listings through the admin dashboard. Click the button to go to the admin panel and use passcode <strong>sagarwander</strong>.</p>
+      </div>
+      <a href="admin.html" class="add-btn" title="Admin Dashboard">
+        <i class="fas fa-user-shield"></i> Open Admin Dashboard
+      </a>
+    </div>
+
+    <div class="controls">
+      <label style="font-weight:900;opacity:.9">Category</label>
+      <select class="select" id="categorySelect">
+        <option value="all">All</option>
+      </select>
+
+      <label style="font-weight:900;opacity:.9;margin-left:auto">Sort</label>
+      <select class="select" id="sortSelect">
+        <option value="featured">Featured</option>
+        <option value="rating">Rating</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+      </select>
+
+      <button class="add-btn" type="button" id="clearFiltersBtn" title="Clear filters">
+        <i class="fas fa-broom"></i> Clear
+      </button>
+    </div>
+
+    <!-- Products -->
+    <section class="section fade-in" style="padding-top:0">
+      <h2 class="section-title">Shop Deals</h2>
+      <div id="productsGrid" class="products-grid" aria-live="polite"></div>
+      <div id="productsEmpty" style="text-align:center;opacity:.8;margin-top:30px;display:none">
+        No products found. Update <b>products.json</b> or change search/category.
+      </div>
+    </section>
+
+    <!-- Footer (keep your existing idea) -->
+    <footer class="footer" style="margin-top:60px">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>LuxeCart Hub</h3>
+          <p>Affiliate marketing site. Prices and availability depend on the merchant.</p>
+        </div>
+        <div class="footer-section">
+          <h3>Disclosure</h3>
+          <p style="opacity:.9">As an Amazon affiliate, we earn from qualifying purchases.</p>
+          <a href="#" style="color: var(--gold); font-weight:900;">Affiliate Disclosure</a>
+        </div>
+        <div class="footer-section">
+          <h3>Quick</h3>
+          <p style="opacity:.9">Use search to find products quickly.</p>
+        </div>
+      </div>
+      <div style="border-top: 1px solid var(--gold); padding-top: 2rem; margin-top: 2rem; text-align:center; opacity:.75">
+        © <span id="year"></span> LuxeCart Hub
+      </div>
+    </footer>
+  </main>
+
+  <!-- Cart Drawer -->
+  <aside class="drawer" id="cartDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <h2>Your Cart</h2>
+      <button class="drawer-close" id="closeCartBtn" type="button">Close</button>
+    </div>
+
+    <div class="drawer-body">
+      <div id="cartItems" aria-live="polite"></div>
+      <div id="cartEmpty" style="opacity:.8; text-align:center; padding:18px; display:none">
+        Your cart is empty.
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <div class="total-row">
+        <span style="opacity:.85">Estimated total (from your JSON prices)</span>
+        <strong id="cartTotal">₹0</strong>
+      </div>
+
+      <button class="buy-btn primary-wide" id="goToAffiliateBtn" type="button">
+        <i class="fas fa-external-link-alt"></i> Open Amazon Offers
+      </button>
+      <button class="add-btn primary-wide" id="clearCartBtn" type="button" style="margin-top:10px">
+        <i class="fas fa-trash"></i> Clear Cart
+      </button>
+
+      <div style="margin-top:12px; opacity:.75; font-size:.9rem; line-height:1.35">
+        Note: This cart is local-only. Clicking an item opens the affiliate link in a new tab.
+      </div>
+    </div>
+  </aside>
+
+  <!-- Chatbot (kept simple) -->
+  <div class="chatbot" onclick="toggleChatbot()"><i class="fas fa-comments" style="font-size: 1.5rem;"></i></div>
+  <div class="chatbot-modal" id="chatbotModal">
+    <div class="chatbot-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <div style="width: 40px; height: 40px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-robot" style="color: var(--black);"></i>
+        </div>
+        <div>
+          <div>Fashion AI</div>
+          <div style="font-size: 0.8rem; opacity: 0.7;">Online</div>
+        </div>
+      </div>
+      <i class="fas fa-times" onclick="toggleChatbot()" style="cursor: pointer;"></i>
+    </div>
+    <div class="chatbot-messages" id="chatMessages">
+      <div style="text-align: center; padding: 1rem; opacity: 0.7;">👗 Hi! Ask for dresses, bags, oversized tees, etc.</div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" placeholder="Ask about fashion..." id="chatInput" />
+      <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <script>
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // ---------- Affiliate Product Grid ----------
+    const grid = document.getElementById('productsGrid');
+    const emptyEl = document.getElementById('productsEmpty');
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const sortSelect = document.getElementById('sortSelect');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+    let products = [];
+    let categories = ['all'];
+
+    function starsHtml(count) {
+      const safe = Number.isFinite(count) ? Math.max(0, Math.min(5, count)) : 0;
+      return '★'.repeat(safe) + '☆'.repeat(5 - safe);
+    }
+
+    function parsePriceToNumber(priceText){
+      if(!priceText) return 0;
+      const num = String(priceText).replace(/[^0-9.]/g,'');
+      const val = Number(num);
+      return Number.isFinite(val) ? val : 0;
+    }
+
+    function buildProductCard(p){
+      const title = p.title ?? '';
+      const price = p.price ?? '';
+      const badge = p.badge ?? '';
+      const image = p.image ?? '';
+      const link = p.link ?? '#';
+      const ratingStars = starsHtml(p.ratingStars);
+      const ratingText = p.ratingText ?? '';
+      const keywords = Array.isArray(p.keywords) ? p.keywords.filter(Boolean) : [];
+
+      const productId = p.id ?? link; // stable fallback
+
+      return `
+        <div class="product-card">
+          <div class="product-image" style="background-image: url('${image}'); height: 280px;"></div>
+          ${badge ? `<div class="product-badge">${badge}</div>` : ''}
+          <div class="product-info">
+            <div class="product-title">${title}</div>
+            <div class="product-price">${price}</div>
+            <div class="product-rating">
+              <div class="stars" aria-label="rating">${ratingStars}</div>
+              ${ratingText ? `<span>${ratingText}</span>` : ''}
+            </div>
+            ${keywords.length ? `<div class="product-meta" style="opacity:.82;margin-top:8px;font-size:.92rem">Keywords: ${keywords.join(', ')}</div>` : ''}
+
+            <div class="product-actions">
+              <button class="add-btn" type="button" data-action="add" data-id="${String(productId).replaceAll('"','')}">
+                <i class="fas fa-plus"></i> Add
+              </button>
+              <a class="buy-btn" href="${link}" target="_blank" rel="nofollow noopener">
+                <i class="fab fa-amazon"></i> Amazon Offer →
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getSelectedCategory(){
+      return categorySelect.value || 'all';
+    }
+
+    function filterAndSort(){
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      const cat = getSelectedCategory();
+      let list = Array.isArray(products) ? [...products] : [];
+
+      if(cat && cat !== 'all'){
+        list = list.filter(p => (p.category || '').toLowerCase() === cat);
+      }
+
+      if(q){
+        list = list.filter(p => {
+          const t = String(p.title || '').toLowerCase();
+          const b = String(p.badge || '').toLowerCase();
+          const keywords = Array.isArray(p.keywords) ? p.keywords.join(' ').toLowerCase() : String(p.keywords || '').toLowerCase();
+          return t.includes(q) || b.includes(q) || keywords.includes(q);
+        });
+      }
+
+      const sort = sortSelect.value;
+      if(sort === 'rating'){
+        list.sort((a,b) => (b.ratingStars||0) - (a.ratingStars||0));
+      } else if(sort === 'price-asc'){
+        list.sort((a,b) => parsePriceToNumber(a.price) - parsePriceToNumber(b.price));
+      } else if(sort === 'price-desc'){
+        list.sort((a,b) => parsePriceToNumber(b.price) - parsePriceToNumber(a.price));
+      } else {
+        // featured: keep original order
+      }
+
+      return list;
+    }
+
+    function render(){
+      if(!grid) return;
+      const list = filterAndSort();
+      grid.innerHTML = list.map(buildProductCard).join('');
+
+      if(emptyEl){
+        emptyEl.style.display = list.length === 0 ? 'block' : 'none';
+      }
+
+      // attach add-to-cart handlers
+      grid.querySelectorAll('button[data-action="add"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          addToCartById(id);
+        });
+      });
+    }
+
+    async function loadProducts(){
+      try{
+        const localRaw = localStorage.getItem(ADMIN_LOCAL_PRODUCTS_KEY);
+        if(localRaw){
+          try{
+            const localProducts = JSON.parse(localRaw);
+            if(Array.isArray(localProducts) && localProducts.length){
+              products = localProducts;
+            }
+          }catch{}
+        }
+
+        if(products.length === 0){
+          const res = await fetch('products.json', { cache: 'no-store' });
+          if(!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          products = Array.isArray(data) ? data : [];
+        }
+
+        // categories (optional)
+        const set = new Set();
+        products.forEach(p => {
+          const c = (p.category || '').toString().trim();
+          if(c) set.add(c.toLowerCase());
+        });
+        categories = ['all', ...Array.from(set)];
+
+        // render category options
+        categorySelect.innerHTML = categories.map(c => {
+          const label = c === 'all' ? 'All' : c;
+          return `<option value="${c}">${label}</option>`;
+        }).join('');
+
+        render();
+      } catch(e){
+        console.error(e);
+        products = [];
+        if(grid) grid.innerHTML = '';
+        if(emptyEl) emptyEl.style.display = 'block';
+      }
+    }
+
+    searchInput?.addEventListener('input', () => render());
+    categorySelect?.addEventListener('change', () => render());
+    sortSelect?.addEventListener('change', () => render());
+    clearFiltersBtn?.addEventListener('click', () => {
+      if(searchInput) searchInput.value = '';
+      if(categorySelect) categorySelect.value = 'all';
+      if(sortSelect) sortSelect.value = 'featured';
+      render();
+    });
+
+    const ADMIN_LOCAL_PRODUCTS_KEY = 'luxecart_admin_products_v1';
+
+    // ---------- Local Cart ----------
+    const CART_KEY = 'luxecart_cart_v1';
+    function cartLoad(){
+      try{ return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
+    }
+    function cartSave(items){
+      localStorage.setItem(CART_KEY, JSON.stringify(items));
+    }
+
+    function cartCount(){
+      const items = cartLoad();
+      return items.reduce((sum,it) => sum + (it.qty||0), 0);
+    }
+
+    const cartDrawer = document.getElementById('cartDrawer');
+    const openCartBtn = document.getElementById('openCartBtn');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartEmptyEl = document.getElementById('cartEmpty');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const cartCountEl = document.getElementById('cartCount');
+
+    function formatINR(num){
+      const val = Number(num || 0);
+      try { return '₹' + val.toLocaleString('en-IN'); } catch { return '₹' + val; }
+    }
+
+    function computeCartTotal(){
+      const items = cartLoad();
+      let total = 0;
+      for(const it of items){
+        total += parsePriceToNumber(it.price) * (it.qty||0);
+      }
+      return total;
+    }
+
+    function renderCart(){
+      const items = cartLoad();
+      const count = cartCount();
+      if(cartCountEl) cartCountEl.textContent = String(count);
+
+      if(!cartItemsEl) return;
+      cartItemsEl.innerHTML = '';
+
+      if(items.length === 0){
+        if(cartEmptyEl) cartEmptyEl.style.display = 'block';
+        if(cartTotalEl) cartTotalEl.textContent = formatINR(0);
+        return;
+      }
+      if(cartEmptyEl) cartEmptyEl.style.display = 'none';
+
+      items.forEach((it) => {
+        const thumbStyle = it.image ? `background-image:url('${it.image}')` : '';
+        cartItemsEl.innerHTML += `
+          <div class="cart-item">
+            <div class="cart-thumb" style="${thumbStyle}"></div>
+            <div class="cart-meta">
+              <p class="cart-title">${it.title || ''}</p>
+              <p class="cart-sub">${it.price || ''}</p>
+              <div class="qty-row">
+                <button class="qty-btn" type="button" data-act="dec" data-id="${it.id}"><i class="fas fa-minus"></i></button>
+                <div class="qty">${it.qty||1}</div>
+                <button class="qty-btn" type="button" data-act="inc" data-id="${it.id}"><i class="fas fa-plus"></i></button>
+                <a class="affiliate-link" href="${it.link}" target="_blank" rel="nofollow noopener" style="margin-left:auto">
+                  Amazon Offer →
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      cartTotalEl.textContent = formatINR(computeCartTotal());
+
+      cartItemsEl.querySelectorAll('button[data-act]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const act = btn.getAttribute('data-act');
+          const itemsNow = cartLoad();
+          const idx = itemsNow.findIndex(x => x.id === id);
+          if(idx === -1) return;
+          if(act === 'inc') itemsNow[idx].qty = (itemsNow[idx].qty || 1) + 1;
+          if(act === 'dec') itemsNow[idx].qty = (itemsNow[idx].qty || 1) - 1;
+          if((itemsNow[idx].qty || 0) <= 0) itemsNow.splice(idx,1);
+          cartSave(itemsNow);
+          renderCart();
+        });
+      });
+    }
+
+    function findProductById(id){
+      return products.find(p => (p.id ?? p.link) === id);
+    }
+
+    function addToCartById(id){
+      const p = findProductById(id);
+      if(!p) return;
+
+      const items = cartLoad();
+      const productId = p.id ?? p.link;
+      const price = p.price ?? '';
+      const link = p.link ?? '#';
+      const image = p.image ?? '';
+
+      const idx = items.findIndex(x => x.id === productId);
+      if(idx !== -1){
+        items[idx].qty = (items[idx].qty || 1) + 1;
+      } else {
+        items.push({
+          id: productId,
+          title: p.title ?? '',
+          price,
+          image,
+          link,
+          qty: 1
+        });
+      }
+      cartSave(items);
+      renderCart();
+    }
+
+    function openDrawer(){
+      cartDrawer.classList.add('open');
+      cartDrawer.setAttribute('aria-hidden','false');
+    }
+    function closeDrawer(){
+      cartDrawer.classList.remove('open');
+      cartDrawer.setAttribute('aria-hidden','true');
+    }
+
+    openCartBtn?.addEventListener('click', () => { renderCart(); openDrawer(); });
+    closeCartBtn?.addEventListener('click', () => closeDrawer());
+
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') closeDrawer();
+    });
+
+    document.getElementById('clearCartBtn')?.addEventListener('click', () => {
+      cartSave([]);
+      renderCart();
+    });
+
+    document.getElementById('goToAffiliateBtn')?.addEventListener('click', () => {
+      const items = cartLoad();
+      if(items.length === 0) return;
+      // open each affiliate link in new tabs
+      items.forEach(it => {
+        if(it.link) window.open(it.link, '_blank', 'noopener,noreferrer');
+      });
+    });
+
+    // ---------- AI Chatbot (kept from your original) ----------
+    function toggleChatbot(){
+      const modal = document.getElementById('chatbotModal');
+      modal?.classList.toggle('active');
+    }
+
+    function sendMessage(){
+      const input = document.getElementById('chatInput');
+      const messages = document.getElementById('chatMessages');
+      const message = input?.value?.trim();
+      if(!message || !input || !messages) return;
+
+      messages.innerHTML += `
+        <div style="margin-bottom: 1rem; text-align: right;">
+          <div style="display: inline-block; background: var(--gold); color: var(--black); padding: 0.8rem 1.2rem; border-radius: 20px 20px 5px 20px; max-width: 70%;">
+            ${escapeHtml(message)}
+          </div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        let response = '🔍 Let me find the perfect products for you!';
+        const m = message.toLowerCase();
+        if(m.includes('dress')) response = '👗 Dresses found! Try searching: dress, bodycon, satin.';
+        else if(m.includes('bag')) response = '👜 Bags found! Try searching: handbag, tote, crossbody.';
+        else if(m.includes('oversized') || m.includes('tee')) response = '✨ Oversized tees are trending! Try searching: oversized tee.';
+
+        messages.innerHTML += `
+          <div style="margin-bottom: 1rem;">
+            <div style="display: inline-block; background: var(--bg-secondary); border: 1px solid var(--gold); padding: 0.8rem 1.2rem; border-radius: 20px 20px 20px 5px; max-width: 70%;">
+              ${escapeHtml(response)}
+            </div>
+          </div>
+        `;
+        messages.scrollTop = messages.scrollHeight;
+      }, 600);
+
+      input.value = '';
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function escapeHtml(str){
+      return String(str ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','<')
+        .replaceAll('>','>')
+        .replaceAll('"','"')
+        .replaceAll("'",'&#039;');
+    }
+
+    document.getElementById('chatInput')?.addEventListener('keypress', function(e) {
+      if(e.key === 'Enter') sendMessage();
+    });
+
+    // ---------- Init ----------
+    loadProducts();
+    // initialize cart count
+    renderCart();
+  </script>
+</body>
+</html>

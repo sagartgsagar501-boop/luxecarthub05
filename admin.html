@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LuxeCart Hub - Admin (Only You)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root{
+      --black:#0a0a0a; --gold:#D4AF37; --gold-dark:#B8962E; --white:#fff; --bg:#111; --muted:#9aa0a6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg, #0b0b0b, #111);
+      color:var(--white);
+      padding:24px;
+    }
+    .wrap{max-width:1100px;margin:0 auto}
+    .card{
+      background:rgba(17,17,17,0.85);
+      border:1px solid rgba(212,175,55,0.25);
+      border-radius:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.4);
+      padding:20px;
+      margin-bottom:18px;
+    }
+    header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+    h1{font-family:'Playfair Display',serif;font-size:2rem;letter-spacing:.3px}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.35);padding:8px 12px;border-radius:999px;color:var(--gold);font-weight:600}
+
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:14px}
+    @media(max-width:860px){.grid{grid-template-columns:1fr}}
+
+    label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
+    input,textarea{width:100%;background:#0b0b0b;border:1px solid rgba(212,175,55,0.25);border-radius:12px;padding:12px 12px;color:var(--white);outline:none}
+    textarea{min-height:92px;resize:vertical}
+    input:focus,textarea:focus{border-color:rgba(212,175,55,0.6);box-shadow:0 0 0 4px rgba(212,175,55,0.12)}
+
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .btn{
+      border:none;cursor:pointer;border-radius:999px;
+      padding:12px 16px;font-weight:700;color:#000;
+      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      transition:transform .15s ease, filter .15s ease;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-secondary{
+      background:transparent;border:1px solid rgba(212,175,55,0.6);color:var(--gold-dark);
+    }
+    .btn-secondary:hover{filter:brightness(1.05)}
+
+    .small{font-size:.9rem;color:var(--muted);line-height:1.4}
+
+    .product{
+      border:1px dashed rgba(212,175,55,0.35);
+      border-radius:16px;
+      padding:14px;
+      margin-top:14px;
+      background:rgba(0,0,0,0.15);
+    }
+
+    .productsList{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+    .productItem{border:1px solid rgba(212,175,55,0.22);border-radius:16px;padding:12px;background:rgba(0,0,0,0.18)}
+    .productItem h3{font-size:1rem;margin-bottom:6px}
+    .productItem .meta{font-size:.9rem;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+    .actions{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+
+    .lock{
+      position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.65);
+      z-index:9999;padding:18px
+    }
+    .lock.show{display:grid}
+    .lockBox{max-width:520px;width:100%}
+    .lockBox .card{margin-bottom:0}
+
+    .toast{
+      display:none;
+      position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+      background:rgba(20,20,20,0.95);
+      border:1px solid rgba(212,175,55,0.35);
+      color:var(--white);
+      padding:12px 14px;border-radius:999px;
+      z-index:10000;
+    }
+    .toast.show{display:block}
+
+    /* Prevent others from easily seeing admin contents on page load */
+    .hide-when-locked{display:none}
+    .hide-when-locked.unlocked{display:block}
+  </style>
+</head>
+<body>
+  <div class="lock" id="lockOverlay" aria-hidden="true">
+    <div class="lockBox">
+      <div class="card">
+        <header>
+          <div>
+            <h1 style="margin-bottom:6px">Admin Access</h1>
+            <div class="small">Enter the secret passcode to manage products.</div>
+          </div>
+          <div class="pill"><i class="fa-solid fa-user-lock"></i> Private</div>
+        </header>
+        <div style="margin-top:12px">
+          <label>Passcode</label>
+          <input id="passcode" type="password" placeholder="Enter passcode" />
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="unlockBtn"><i class="fa-solid fa-unlock"></i> Unlock</button>
+          <button class="btn btn-secondary" id="clearBtn" type="button"><i class="fa-solid fa-eraser"></i> Clear</button>
+        </div>
+        <div class="small" style="margin-top:12px" id="lockMsg"></div>
+        <div class="small" style="margin-top:10px">Note: This is a local/offline admin page. For full security online, you need a backend + authentication.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>LuxeCart Hub - Products Admin</h1>
+        <div class="small">Update <b>products.json</b>. Your website will load updates automatically.</div>
+      </div>
+      <div class="pill"><i class="fa-solid fa-gem"></i> Admin</div>
+    </header>
+
+    <div class="card hide-when-locked" id="adminArea">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="small">Tip: If you’re opening the site locally in browser, saving to files requires a local server or user manual replacement.</div>
+        </div>
+        <div class="small" id="statusText">Loading products.json...</div>
+      </div>
+
+      <div class="grid" style="margin-top:14px">
+        <div>
+          <label>Title</label>
+          <input id="pTitle" type="text" placeholder="e.g. Oversized Graphic Tee" />
+        </div>
+        <div>
+          <label>Price</label>
+          <input id="pPrice" type="text" placeholder="e.g. ₹1,299" />
+        </div>
+        <div>
+          <label>Badge (optional)</label>
+          <input id="pBadge" type="text" placeholder="e.g. 🔥 Trending" />
+        </div>
+        <div>
+          <label>Rating Stars (0-5)</label>
+          <input id="pStars" type="number" min="0" max="5" step="1" placeholder="e.g. 5" />
+        </div>
+        <div>
+          <label>Rating Text (optional)</label>
+          <input id="pRatingText" type="text" placeholder="e.g. (4.8k)" />
+        </div>
+        <div>
+          <label>Keywords (comma separated)</label>
+          <input id="pKeywords" type="text" placeholder="e.g. denim, streetwear, gift" />
+        </div>
+        <div>
+          <label>Image URL</label>
+          <input id="pImage" type="text" placeholder="https://...jpg" />
+        </div>
+        <div style="grid-column:1 / -1">
+          <label>Amazon Affiliate Link</label>
+          <input id="pLink" type="text" placeholder="https://amzn.to/..." />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="addBtn" type="button"><i class="fa-solid fa-plus"></i> Add Product</button>
+        <button class="btn btn-secondary" id="saveBtn" type="button"><i class="fa-solid fa-floppy-disk"></i> Save to Export</button>
+        <button class="btn btn-secondary" id="downloadBtn" type="button"><i class="fa-solid fa-download"></i> Download products.json</button>
+      </div>
+      <div id="formErrorMsg" class="small" style="margin-top:12px;color:#ff9b9b;display:none"></div>
+
+      <div class="small" style="margin-top:12px">
+        Because this is a static site, browser pages can’t directly overwrite files on your computer safely.
+        So we provide an <b>export</b> to copy/paste or download.
+      </div>
+
+      <div id="exportArea" style="margin-top:14px; display:none">
+        <label>Exported products.json (copy this)</label>
+        <textarea id="exportText" readonly></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" type="button" id="copyBtn"><i class="fa-regular fa-copy"></i> Copy</button>
+        </div>
+      </div>
+
+      <div class="product" style="margin-top:18px">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem">Current Products</h2>
+        <div class="productsList" id="productsList"></div>
+      </div>
+
+      <div class="small" style="margin-top:12px">
+        After you export/copy, replace the contents of <b>products.json</b> with this new JSON.
+        Then refresh your main homepage.
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Done</div>
+
+  <script>
+    // ------------------------------
+    // Simple local "lock".
+    // Change this passcode to something only you know.
+    // ------------------------------
+    const ADMIN_PASSCODE = 'sagarwander'; // secret passcode for admin access
+
+    const lockOverlay = document.getElementById('lockOverlay');
+    const passcodeEl = document.getElementById('passcode');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const lockMsg = document.getElementById('lockMsg');
+    const adminArea = document.getElementById('adminArea');
+
+    function showToast(msg){
+      const t = document.getElementById('toast');
+      if(!t) return;
+      t.textContent = msg || 'Done';
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'), 1800);
+    }
+
+    function unlock(){
+      const code = (passcodeEl.value || '').trim();
+      if(code === ADMIN_PASSCODE){
+        lockOverlay.classList.remove('show');
+        lockOverlay.setAttribute('aria-hidden','true');
+        passcodeEl.value = '';
+        adminArea.classList.add('unlocked');
+        lockMsg.textContent = '';
+        showToast('Unlocked');
+      } else {
+        lockMsg.textContent = 'Incorrect passcode.';
+      }
+    }
+
+    function initLock(){
+      lockOverlay.classList.add('show');
+      lockOverlay.setAttribute('aria-hidden','false');
+      adminArea.classList.remove('unlocked');
+
+      unlockBtn.addEventListener('click', unlock);
+      passcodeEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') unlock(); });
+      clearBtn.addEventListener('click', ()=>{ passcodeEl.value=''; lockMsg.textContent=''; });
+    }
+
+    // ------------------------------
+    // Products manager (export only)
+    // ------------------------------
+    const productsListEl = document.getElementById('productsList');
+    const statusText = document.getElementById('statusText');
+
+    const inputs = {
+      title: document.getElementById('pTitle'),
+      price: document.getElementById('pPrice'),
+      badge: document.getElementById('pBadge'),
+      stars: document.getElementById('pStars'),
+      ratingText: document.getElementById('pRatingText'),
+      keywords: document.getElementById('pKeywords'),
+      image: document.getElementById('pImage'),
+      link: document.getElementById('pLink')
+    };
+
+    let products = [];
+    let loaded = false;
+    const ADMIN_LOCAL_PRODUCTS_KEY = 'luxecart_admin_products_v1';
+
+    function saveAdminProducts(){
+      try{
+        localStorage.setItem(ADMIN_LOCAL_PRODUCTS_KEY, JSON.stringify(products));
+      }catch(e){
+        console.warn('Could not save admin products locally', e);
+      }
+    }
+
+    function loadAdminProducts(){
+      try{
+        const raw = localStorage.getItem(ADMIN_LOCAL_PRODUCTS_KEY);
+        if(!raw) return false;
+        const stored = JSON.parse(raw);
+        if(Array.isArray(stored) && stored.length){
+          products = stored;
+          return true;
+        }
+      }catch(e){
+        console.warn('Could not load admin products from local storage', e);
+      }
+      return false;
+    }
+
+    const exportArea = document.getElementById('exportArea');
+    const exportText = document.getElementById('exportText');
+    const copyBtn = document.getElementById('copyBtn');
+    const addBtn = document.getElementById('addBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const formErrorMsg = document.getElementById('formErrorMsg');
+
+    function safeStr(v){
+      return (v ?? '').toString();
+    }
+
+    function setFormMessage(msg, isError = true){
+      if(!formErrorMsg) return;
+      formErrorMsg.textContent = msg;
+      formErrorMsg.style.display = msg ? 'block' : 'none';
+      formErrorMsg.style.color = isError ? '#ff9b9b' : '#9bffb2';
+    }
+
+    function toProduct(){
+      const title = safeStr(inputs.title.value).trim();
+      const price = safeStr(inputs.price.value).trim();
+      const badge = safeStr(inputs.badge.value).trim();
+      const starsRaw = inputs.stars.value;
+      const ratingStars = starsRaw === '' ? 0 : Number(starsRaw);
+      const ratingText = safeStr(inputs.ratingText.value).trim();
+      const keywordsRaw = safeStr(inputs.keywords.value).trim();
+      const keywords = keywordsRaw ? keywordsRaw.split(',').map(word => word.trim()).filter(Boolean) : [];
+      const image = safeStr(inputs.image.value).trim();
+      const link = safeStr(inputs.link.value).trim();
+
+      if(!title || !price || !image || !link){
+        setFormMessage('Please fill Title, Price, Image URL, and Amazon Link.', true);
+        return null;
+      }
+
+      setFormMessage('', false);
+
+      return {
+        title,
+        price,
+        badge,
+        ratingStars: Number.isFinite(ratingStars) ? ratingStars : 0,
+        ratingText,
+        keywords,
+        image,
+        link
+      };
+    }
+
+    function renderList(){
+      productsListEl.innerHTML = '';
+      if(products.length === 0){
+        productsListEl.innerHTML = '<div class="small">No products loaded yet.</div>';
+        return;
+      }
+
+      products.forEach((p, idx)=>{
+        const keywords = Array.isArray(p.keywords) ? p.keywords.filter(Boolean) : [];
+        const item = document.createElement('div');
+        item.className = 'productItem';
+        item.innerHTML = `
+          <h3>${escapeHtml(p.title || '')}</h3>
+          <div class="meta">
+            <span><b>Price:</b> ${escapeHtml(p.price || '')}</span>
+            <span><b>Badge:</b> ${escapeHtml(p.badge || '')}</span>
+            <span><b>Stars:</b> ${escapeHtml(String(p.ratingStars ?? ''))}</span>
+          </div>
+          <div class="meta"><span style="word-break:break-word"><b>Link:</b> ${escapeHtml(p.link || '')}</span></div>
+          ${keywords.length ? `<div class="meta"><b>Keywords:</b> ${escapeHtml(keywords.join(', '))}</div>` : ''}
+          <div class="actions">
+            <button class="btn btn-secondary" type="button" data-act="edit" data-idx="${idx}"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-secondary" type="button" data-act="delete" data-idx="${idx}"><i class="fa-solid fa-trash"></i> Delete</button>
+          </div>
+        `;
+
+        item.querySelector('[data-act="edit"]').addEventListener('click', ()=>{
+          const prod = products[idx];
+            inputs.title.value = prod.title ?? '';
+          inputs.price.value = prod.price ?? '';
+          inputs.badge.value = prod.badge ?? '';
+          inputs.stars.value = prod.ratingStars ?? '';
+          inputs.ratingText.value = prod.ratingText ?? '';
+          inputs.keywords.value = Array.isArray(prod.keywords) ? prod.keywords.join(', ') : safeStr(prod.keywords);
+          inputs.image.value = prod.image ?? '';
+          inputs.link.value = prod.link ?? '';
+        });
+
+        item.querySelector('[data-act="delete"]').addEventListener('click', ()=>{
+          if(confirm('Delete this product?')){
+            products.splice(idx, 1);
+            renderList();
+            saveAdminProducts();
+          }
+        });
+
+        productsListEl.appendChild(item);
+      });
+    }
+
+    function escapeHtml(str){
+      return (str ?? '').toString()
+        .replaceAll('&','&amp;')
+        .replaceAll('<','<')
+        .replaceAll('>','>')
+        .replaceAll('"','"')
+        .replaceAll("'",'&#039;');
+    }
+
+    function exportProducts(){
+      exportText.value = JSON.stringify(products, null, 2);
+      exportArea.style.display = 'block';
+    }
+
+    function downloadJson(){
+      const blob = new Blob([JSON.stringify(products, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'products.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadProductsFile(){
+      try{
+        statusText.textContent = 'Loading admin products...';
+        const localLoaded = loadAdminProducts();
+        if(localLoaded){
+          loaded = true;
+          statusText.textContent = 'Loaded '+products.length+' local product(s).';
+          renderList();
+          return;
+        }
+        statusText.textContent = 'Loading products.json...';
+        const res = await fetch('products.json', { cache: 'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        products = Array.isArray(data) ? data : [];
+        loaded = true;
+        statusText.textContent = 'Loaded '+products.length+' product(s).';
+        renderList();
+      } catch(e){
+        console.error(e);
+        statusText.textContent = 'Could not load products.json. You can add products and export.';
+        products = [];
+        loaded = true;
+        renderList();
+      }
+    }
+
+    addBtn.addEventListener('click', ()=>{
+      const newP = toProduct();
+      if(!newP) return;
+      products.push(newP);
+      renderList();
+      saveAdminProducts();
+
+      // Clear some fields
+      inputs.title.value = '';
+      inputs.price.value = '';
+      inputs.badge.value = '';
+      inputs.stars.value = '';
+      inputs.ratingText.value = '';
+      inputs.keywords.value = '';
+      inputs.image.value = '';
+      inputs.link.value = '';
+      setFormMessage('Product added successfully.', false);
+
+      showToast('Product added');
+    });
+
+    saveBtn.addEventListener('click', ()=>{
+      saveAdminProducts();
+      exportProducts();
+      showToast('Export ready');
+    });
+
+    downloadBtn.addEventListener('click', ()=>{
+      saveAdminProducts();
+      downloadJson();
+      showToast('Downloaded products.json');
+    });
+
+    copyBtn.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(exportText.value);
+        showToast('Copied');
+      }catch{
+        alert('Copy failed. Please select and copy manually.');
+      }
+    });
+
+    // Initialize lock
+    initLock();
+
+    // Load products when unlocked
+    unlockBtn.addEventListener('click', ()=>{
+      if(!loaded){
+        loadProductsFile();
+      }
+    });
+    // Also attempt load when user presses Enter and unlock happens
+    passcodeEl.addEventListener('keydown', (e)=>{
+      if(e.key !== 'Enter') return;
+      if(!loaded){
+        // load after a tick; unlock may fail.
+        setTimeout(()=>{ if(adminArea.classList.contains('unlocked') && !loaded) loadProductsFile(); }, 0);
+      }
+    });
+  </script>
+</body>
+</html>
+

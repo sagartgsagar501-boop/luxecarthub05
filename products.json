@@ -1,0 +1,39 @@
+[
+  {
+    DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeCart Hub - Luxury Fashion Finds Without Luxury Prices</title>
+    <meta name="description" content="Discover trending women's fashion, affordable luxury outfits, oversized t-shirts, dresses, handbags & more. Daily Amazon fashion deals for India & global shoppers.">
+    <meta name="keywords" content="women's fashion trends, affordable luxury fashion, oversized t shirts women, Amazon fashion deals India, trendy outfits">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="LuxeCart Hub - Luxury Fashion Finds">
+    <meta property="og:description" content="Trending fashion without luxury prices. Shop Amazon's best fashion deals.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1529139578434-53c49e7628eb?w=1200">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="LuxeCart Hub">
+    <meta property="twitter:description" content="Luxury fashion finds without luxury prices">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --black: #0a0a0a;
+            --gold: #D4AF37;
+            --gold-dark: #B8962E;
+            --white: #ffffff;
+            --gray: #333333;
+            --gray-light: #666666;
+            --bg-secondary: #111111;
+        }
+
+        * {
